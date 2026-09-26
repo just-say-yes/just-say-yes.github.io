@@ -216,7 +216,15 @@
     position: static;
     background: var(--accent);
   }
-  .choices .btn.secondary {
+  #btnDateContinue {
+    background: var(--accent);
+  }
+  #btnDateContinue.secondary {
+    background: transparent;
+    border: 2px solid var(--ink-dim);
+    color: var(--ink-dim);
+  }
+  .btn.secondary {
     background: transparent;
     border: 2px solid var(--accent);
     color: var(--accent);
@@ -364,7 +372,7 @@
     <div id="locStep">
       <p class="q">Then dinner, cinema, or Buc's Park?</p>
       <div class="choices">
-        <button class="btn" id="btnDinner" type="button">Dinner 🍝</button>
+        <button class="btn secondary" id="btnDinner" type="button">Dinner 🍝</button>
         <button class="btn secondary" id="btnCinema" type="button">Cinema 🎬</button>
         <button class="btn secondary" id="btnPark" type="button">Buc's Park 🌳</button>
       </div>
@@ -373,7 +381,7 @@
     <div id="dinnerSubStep" class="hidden">
       <p class="q">Pizza, sushi, or something else?</p>
       <div class="choices">
-        <button class="btn" id="btnPizza" type="button">Pizza 🍕</button>
+        <button class="btn secondary" id="btnPizza" type="button">Pizza 🍕</button>
         <button class="btn secondary" id="btnSushi" type="button">Sushi 🍣</button>
         <button class="btn secondary" id="btnOther" type="button">Other</button>
       </div>
@@ -390,12 +398,12 @@
         <span class="weekday" id="weekdayTag"></span>
       </div>
       <div class="hour-row" id="hourRow"></div>
-      <button class="btn" id="btnDateContinue" type="button" disabled>Continue</button>
+      <button class="btn secondary" id="btnDateContinue" type="button" disabled>Continue</button>
     </div>
 
     <div id="finalStep" class="hidden">
       <div class="result hidden" id="result"></div>
-      <button class="btn notify hidden" id="btnNotify" type="button">💌 Notify Baptiste</button>
+      <button class="btn notify hidden" id="btnNotify" type="button">💌 Notify 000</button>
     </div>
 
     <button class="restart hidden" id="restart" type="button">Start over</button>
@@ -435,7 +443,11 @@
   const btnNotify = document.getElementById('btnNotify');
   const restart = document.getElementById('restart');
 
-  // Google Forms Answer
+  // --- Google Form target: fill these in once you have your form's pre-filled link ---
+  // 1. In Google Forms: ⋮ menu → "Obtenir un lien prérempli", fill test values, click "Obtenir le lien".
+  // 2. That URL looks like: https://docs.google.com/forms/d/e/XXXXX/viewform?usp=pp_url&entry.111=A&entry.222=B...
+  //    - GOOGLE_FORM_ACTION is the same URL but ending in /formResponse instead of /viewform
+  //    - each ENTRY_* below is the "entry.xxxxxxx" name that held the matching test value
   const GOOGLE_FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSd3GBTQP_yygJ1e7VCPuzkqcZ6VWld9Xi-Ok3FaCkhzT0M1Xw/formResponse';
   const ENTRY_CLICKS = 'entry.559352220';
   const ENTRY_LOCATION = 'entry.924523986';
@@ -671,7 +683,9 @@
   }
 
   function updateDateContinueState() {
-    btnDateContinue.disabled = !(dateInput.value && selectedHour !== null);
+    const isReady = dateInput.value && selectedHour !== null;
+    btnDateContinue.disabled = !isReady;
+    btnDateContinue.classList.toggle('secondary', !isReady);
   }
 
   dateInput.addEventListener('change', () => {
@@ -715,6 +729,8 @@
       }
       params.append(ENTRY_DATE, dateInput.value);
       params.append(ENTRY_TIME, hourStr);
+      params.append('fvv', '1');
+      params.append('submit', 'Submit');
       fetch(GOOGLE_FORM_ACTION, { method: 'POST', mode: 'no-cors', body: params })
         .then(() => { btnNotify.textContent = "Sent! 😊"; })
         .catch(() => {
@@ -740,7 +756,7 @@
     result.classList.add('hidden');
     btnNotify.classList.add('hidden');
     btnNotify.disabled = false;
-    btnNotify.textContent = '💌 Notify Baptiste';
+    btnNotify.textContent = '💌 Notify 000';
     restart.classList.add('hidden');
 
     dateInput.value = '';
@@ -748,6 +764,7 @@
     hourRow.querySelectorAll('.hour-pill').forEach((p) => p.classList.remove('selected'));
     selectedHour = null;
     btnDateContinue.disabled = true;
+    btnDateContinue.classList.add('secondary');
     locationDisplay = '';
     formLocationValue = '';
     formOtherText = '';
